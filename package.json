@@ -1,0 +1,21 @@
+{
+  "name": "ai-for-developers-project-386",
+  "version": "1.0.0",
+  "description": "[![Actions Status](https://github.com/VictoriaErmoshkina/ai-for-developers-project-386/actions/workflows/hexlet-check.yml/badge.svg)](https://github.com/VictoriaErmoshkina/ai-for-developers-project-386/actions)",
+  "homepage": "https://github.com/VictoriaErmoshkina/ai-for-developers-project-386#readme",
+  "bugs": {
+    "url": "https://github.com/VictoriaErmoshkina/ai-for-developers-project-386/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VictoriaErmoshkina/ai-for-developers-project-386.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:dev": "tsp compile ."
+  }
+}
