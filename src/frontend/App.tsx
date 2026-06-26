@@ -8,7 +8,7 @@ import CalendarPage from '@/pages/CalendarPage';
 function App() {
     return (
         <BrowserRouter>
-            <main className="p-6">
+            <main>
                 <Routes>
                     <Route path="/" element={<GuestPage/>}/>
                     <Route path="/admin" element={<HostPage/>}/>

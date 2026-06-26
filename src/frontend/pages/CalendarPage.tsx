@@ -1,17 +1,31 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { ChevronLeft, Clock, CalendarDays, CheckCircle2 } from 'lucide-react';
 import { guestApi } from '@/api/client';
 import type { Slot, EventType } from '@/types/api';
+import { Button } from '@/components/button';
+import { Badge } from '@/components/badge';
+import { Input } from '@/components/input';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from '@/components/dialog';
+import { cn } from '@/lib/utils';
 
 function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
 }
 
-function formatDate(iso: string) {
+function formatDateLong(iso: string) {
   return new Date(iso).toLocaleDateString('ru-RU', {
+    weekday: 'long',
     day: 'numeric',
     month: 'long',
-    weekday: 'long',
   });
 }
 
@@ -20,22 +34,14 @@ function toDateKey(iso: string) {
 }
 
 function get14Days(): Date[] {
-  const days: Date[] = [];
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  for (let i = 0; i < 14; i++) {
+  return Array.from({ length: 14 }, (_, i) => {
     const d = new Date(today);
     d.setDate(today.getDate() + i);
-    days.push(d);
-  }
-  return days;
+    return d;
+  });
 }
-
-const glass = {
-  background: 'rgba(255,255,255,0.04)',
-  border: '1px solid rgba(255,255,255,0.08)',
-  backdropFilter: 'blur(12px)',
-} as const;
 
 export default function CalendarPage() {
   const { eventTypeId } = useParams<{ eventTypeId: string }>();
@@ -64,6 +70,7 @@ export default function CalendarPage() {
   }, {});
 
   const days = get14Days();
+  const todayKey = toDateKey(new Date().toISOString());
   const slotsForSelectedDate = selectedDate ? (slotsByDate[selectedDate] ?? []) : [];
 
   function handleSubmit() {
@@ -74,52 +81,55 @@ export default function CalendarPage() {
       setSelectedSlot(null);
       setSubmitted(false);
       setEmail('');
-    }, 1500);
+    }, 2000);
+  }
+
+  function handleDialogClose(open: boolean) {
+    if (!open) {
+      setSelectedSlot(null);
+      setSubmitted(false);
+      setEmail('');
+    }
   }
 
   return (
-    <div className="min-h-screen px-4 py-10">
+    <div className="min-h-screen bg-background px-4 py-10">
       <div className="max-w-2xl mx-auto space-y-8">
 
         {/* Header */}
         <div className="space-y-4">
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
+            className="-ml-2 text-muted-foreground"
             onClick={() => navigate('/')}
-            className="flex items-center gap-1.5 text-sm transition-colors duration-200"
-            style={{ color: '#555' }}
-            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = '#f0f0f0')}
-            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = '#555')}
           >
-            ← Назад
-          </button>
+            <ChevronLeft className="size-4" />
+            Назад
+          </Button>
 
           {eventType && (
-            <div className="space-y-1">
-              <h1 className="text-2xl font-bold tracking-tight text-white">
+            <div className="space-y-2">
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">
                 {eventType.name}
               </h1>
-              <div className="flex items-center gap-2">
-                <span
-                  className="text-xs font-medium px-2.5 py-1 rounded-full"
-                  style={{
-                    background: 'rgba(124,58,237,0.2)',
-                    color: '#a78bfa',
-                    border: '1px solid rgba(124,58,237,0.3)',
-                  }}
+              <div className="flex items-center gap-2 flex-wrap">
+                <Badge
+                  variant="secondary"
+                  className="gap-1 text-primary bg-primary/10 border-primary/20 hover:bg-primary/10"
                 >
+                  <Clock className="size-3" />
                   {eventType.durationMinutes} мин
-                </span>
-                <span className="text-sm" style={{ color: '#666' }}>
-                  {eventType.description}
-                </span>
+                </Badge>
+                <span className="text-sm text-muted-foreground">{eventType.description}</span>
               </div>
             </div>
           )}
         </div>
 
-        {/* Calendar grid */}
-        <div className="rounded-2xl p-5 space-y-4" style={glass}>
-          <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: '#555' }}>
+        {/* Calendar */}
+        <div className="space-y-3">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             Выберите дату
           </p>
           <div className="grid grid-cols-7 gap-1.5">
@@ -127,56 +137,36 @@ export default function CalendarPage() {
               const key = toDateKey(day.toISOString());
               const hasSlots = Boolean(slotsByDate[key]?.length);
               const isSelected = selectedDate === key;
-              const isToday = key === toDateKey(new Date().toISOString());
-
-              const dayNum = day.toLocaleDateString('ru-RU', { day: 'numeric' });
-              const dayName = day.toLocaleDateString('ru-RU', { weekday: 'short' });
+              const isToday = key === todayKey;
 
               return (
                 <button
                   key={key}
                   disabled={!hasSlots}
                   onClick={() => setSelectedDate(key)}
-                  className="rounded-xl p-2 text-center transition-all duration-200 flex flex-col items-center gap-0.5"
-                  style={
+                  className={cn(
+                    'flex flex-col items-center gap-0.5 rounded-xl py-2.5 px-1 text-center text-xs transition-all duration-150',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
                     isSelected
-                      ? {
-                          background: 'linear-gradient(135deg, #7c3aed, #2563eb)',
-                          color: '#fff',
-                          border: '1px solid transparent',
-                        }
+                      ? 'bg-primary text-primary-foreground font-semibold'
                       : hasSlots
-                      ? {
-                          background: 'rgba(255,255,255,0.04)',
-                          border: '1px solid rgba(255,255,255,0.1)',
-                          color: isToday ? '#a78bfa' : '#e0e0e0',
-                          cursor: 'pointer',
-                        }
-                      : {
-                          background: 'transparent',
-                          border: '1px solid rgba(255,255,255,0.04)',
-                          color: '#333',
-                          cursor: 'not-allowed',
-                        }
-                  }
-                  onMouseEnter={(e) => {
-                    if (!hasSlots || isSelected) return;
-                    (e.currentTarget as HTMLElement).style.border = '1px solid rgba(124,58,237,0.5)';
-                    (e.currentTarget as HTMLElement).style.background = 'rgba(124,58,237,0.1)';
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!hasSlots || isSelected) return;
-                    (e.currentTarget as HTMLElement).style.border = '1px solid rgba(255,255,255,0.1)';
-                    (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)';
-                  }}
+                        ? 'bg-secondary text-secondary-foreground hover:border hover:border-primary hover:text-primary cursor-pointer'
+                        : 'text-muted-foreground/30 cursor-not-allowed'
+                  )}
                 >
-                  <span className="text-[10px] font-medium uppercase opacity-70">{dayName}</span>
-                  <span className="text-sm font-semibold">{dayNum}</span>
+                  <span className="text-[10px] font-medium uppercase opacity-70">
+                    {day.toLocaleDateString('ru-RU', { weekday: 'short' })}
+                  </span>
+                  <span
+                    className={cn(
+                      'text-sm font-bold',
+                      isToday && !isSelected && 'text-primary'
+                    )}
+                  >
+                    {day.getDate()}
+                  </span>
                   {hasSlots && !isSelected && (
-                    <span
-                      className="w-1 h-1 rounded-full mt-0.5"
-                      style={{ background: '#7c3aed' }}
-                    />
+                    <span className="size-1 rounded-full bg-primary/50" />
                   )}
                 </button>
               );
@@ -186,37 +176,24 @@ export default function CalendarPage() {
 
         {/* Slots */}
         {selectedDate && (
-          <div className="rounded-2xl p-5 space-y-4" style={glass}>
-            <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: '#555' }}>
-              Свободное время · {formatDate(selectedDate + 'T00:00:00')}
+          <div className="space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              Свободное время · {formatDateLong(selectedDate + 'T12:00:00')}
             </p>
             {slotsForSelectedDate.length === 0 ? (
-              <p className="text-sm" style={{ color: '#555' }}>Нет доступных слотов на этот день</p>
+              <p className="text-sm text-muted-foreground">Нет доступных слотов на этот день</p>
             ) : (
               <div className="flex flex-wrap gap-2">
                 {slotsForSelectedDate.map((slot) => (
-                  <button
+                  <Button
                     key={slot.id}
+                    variant="outline"
+                    size="sm"
+                    className="hover:border-primary hover:text-primary"
                     onClick={() => setSelectedSlot(slot)}
-                    className="px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200"
-                    style={{
-                      background: 'rgba(255,255,255,0.05)',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      color: '#e0e0e0',
-                    }}
-                    onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg, rgba(124,58,237,0.3), rgba(37,99,235,0.3))';
-                      (e.currentTarget as HTMLElement).style.border = '1px solid rgba(124,58,237,0.5)';
-                      (e.currentTarget as HTMLElement).style.color = '#fff';
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)';
-                      (e.currentTarget as HTMLElement).style.border = '1px solid rgba(255,255,255,0.1)';
-                      (e.currentTarget as HTMLElement).style.color = '#e0e0e0';
-                    }}
                   >
                     {formatTime(slot.start)} – {formatTime(slot.end)}
-                  </button>
+                  </Button>
                 ))}
               </div>
             )}
@@ -224,141 +201,73 @@ export default function CalendarPage() {
         )}
       </div>
 
-      {/* Booking modal */}
-      {selectedSlot && (
-        <div
-          className="fixed inset-0 flex items-center justify-center z-50 p-4"
-          style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}
-          onClick={(e) => { if (e.target === e.currentTarget) setSelectedSlot(null); }}
-        >
-          <div
-            className="w-full max-w-sm rounded-2xl p-6 space-y-5"
-            style={{
-              background: 'rgba(18,18,18,0.95)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              backdropFilter: 'blur(20px)',
-              boxShadow: '0 0 60px rgba(124,58,237,0.2), 0 20px 60px rgba(0,0,0,0.5)',
-            }}
-          >
-            {/* Modal header */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: '#7c3aed' }}>
+      {/* Booking dialog */}
+      <Dialog open={!!selectedSlot} onOpenChange={handleDialogClose}>
+        <DialogContent className="sm:max-w-sm">
+          {!submitted ? (
+            <>
+              <DialogHeader>
+                <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-1">
                   Подтверждение записи
                 </p>
-                <button
-                  onClick={() => setSelectedSlot(null)}
-                  className="text-lg leading-none transition-colors"
-                  style={{ color: '#444' }}
-                  onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = '#fff')}
-                  onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = '#444')}
-                >
-                  ×
-                </button>
-              </div>
-              <h2 className="text-lg font-bold text-white">
-                {eventType?.name}
-              </h2>
-            </div>
+                <DialogTitle>{eventType?.name}</DialogTitle>
+                <DialogDescription asChild>
+                  <div className="space-y-0">
+                    {selectedSlot && (
+                      <div className="mt-3 rounded-lg bg-primary/5 border border-primary/15 p-3 space-y-1.5">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                          <Clock className="size-3.5 text-primary" />
+                          {formatTime(selectedSlot.start)} – {formatTime(selectedSlot.end)}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <CalendarDays className="size-3.5 text-primary" />
+                          {formatDateLong(selectedSlot.start)}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </DialogDescription>
+              </DialogHeader>
 
-            {/* Time info */}
-            <div
-              className="rounded-xl p-4 space-y-2"
-              style={{ background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.2)' }}
-            >
-              <div className="flex items-center gap-2">
-                <span style={{ color: '#7c3aed' }}>◷</span>
-                <span className="text-sm font-semibold text-white">
-                  {formatTime(selectedSlot.start)} – {formatTime(selectedSlot.end)}
-                </span>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Ваш email</label>
+                <Input
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && email && handleSubmit()}
+                />
               </div>
-              <div className="flex items-center gap-2">
-                <span style={{ color: '#7c3aed' }}>◈</span>
-                <span className="text-sm" style={{ color: '#888' }}>
-                  {formatDate(selectedSlot.start)}
-                </span>
-              </div>
-            </div>
 
-            {!submitted ? (
-              <>
-                <div className="space-y-2">
-                  <label className="text-xs font-medium" style={{ color: '#666' }}>
-                    Ваш email
-                  </label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
-                    className="w-full rounded-xl px-4 py-3 text-sm outline-none transition-all duration-200"
-                    style={{
-                      background: 'rgba(255,255,255,0.05)',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      color: '#f0f0f0',
-                    }}
-                    onFocus={(e) => {
-                      (e.currentTarget as HTMLElement).style.border = '1px solid rgba(124,58,237,0.6)';
-                      (e.currentTarget as HTMLElement).style.background = 'rgba(124,58,237,0.08)';
-                    }}
-                    onBlur={(e) => {
-                      (e.currentTarget as HTMLElement).style.border = '1px solid rgba(255,255,255,0.1)';
-                      (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)';
-                    }}
-                  />
-                </div>
-
-                <div className="flex gap-2 pt-1">
-                  <button
-                    onClick={() => setSelectedSlot(null)}
-                    className="flex-1 rounded-xl py-2.5 text-sm font-medium transition-all duration-200"
-                    style={{
-                      background: 'rgba(255,255,255,0.05)',
-                      border: '1px solid rgba(255,255,255,0.08)',
-                      color: '#888',
-                    }}
-                    onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)';
-                      (e.currentTarget as HTMLElement).style.color = '#ccc';
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)';
-                      (e.currentTarget as HTMLElement).style.color = '#888';
-                    }}
-                  >
+              <DialogFooter className="gap-2 sm:gap-2">
+                <DialogClose asChild>
+                  <Button variant="outline" className="flex-1">
                     Отмена
-                  </button>
-                  <button
-                    onClick={handleSubmit}
-                    disabled={!email}
-                    className="flex-1 rounded-xl py-2.5 text-sm font-semibold transition-all duration-200 disabled:opacity-30"
-                    style={{
-                      background: 'linear-gradient(135deg, #7c3aed, #2563eb)',
-                      color: '#fff',
-                      border: '1px solid transparent',
-                    }}
-                  >
-                    Записаться →
-                  </button>
-                </div>
-              </>
-            ) : (
-              <div className="text-center py-4 space-y-2">
-                <div
-                  className="text-3xl"
-                  style={{ filter: 'drop-shadow(0 0 12px rgba(124,58,237,0.8))' }}
+                  </Button>
+                </DialogClose>
+                <Button
+                  className="flex-1"
+                  disabled={!email}
+                  onClick={handleSubmit}
                 >
-                  ✦
-                </div>
-                <p className="text-sm font-semibold text-white">Запись создана!</p>
-                <p className="text-xs" style={{ color: '#666' }}>
+                  Записаться →
+                </Button>
+              </DialogFooter>
+            </>
+          ) : (
+            <div className="flex flex-col items-center gap-3 py-6 text-center">
+              <CheckCircle2 className="size-10 text-primary" />
+              <div className="space-y-1">
+                <p className="font-semibold text-foreground">Запись создана!</p>
+                <p className="text-sm text-muted-foreground">
                   Подтверждение придёт на {email}
                 </p>
               </div>
-            )}
-          </div>
-        </div>
-      )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
