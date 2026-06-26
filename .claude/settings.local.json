@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(curl -s http://localhost:5173)",
+      "Bash(npx shadcn@4.11.0 init)",
+      "Bash(npx *)",
+      "Bash(kill %1)",
+      "Bash(wait)",
+      "Bash(xargs kill *)",
+      "Bash(chmod +x *)",
+      "Bash(npm uninstall *)",
+      "Bash(echo \"PID: $!\")",
+      "Bash(curl -s http://127.0.0.1:4010/guest/event-types)",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s http://127.0.0.1:4010/guest/event-types/1/slots)",
+      "WebFetch(domain:localhost)",
+      "Bash(curl -s http://localhost:5175/)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "shadcn"
+  ]
+}
