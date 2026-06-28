@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Plus, Mail, CalendarDays, Clock, CalendarOff } from 'lucide-react';
 import { hostApi, guestApi } from '@/api/client';
-import type { Booking, EventType } from '@/types/api';
+import type { Booking, EventType } from '@shared/types/api';
 import { Button } from '@/components/button';
 import { Badge } from '@/components/badge';
 import { Input } from '@/components/input';

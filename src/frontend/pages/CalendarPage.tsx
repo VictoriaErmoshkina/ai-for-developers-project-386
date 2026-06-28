@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Clock, CalendarDays, CheckCircle2 } from 'lucide-react';
 import { guestApi } from '@/api/client';
-import type { Slot, EventType } from '@/types/api';
+import type { Slot, EventType } from '@shared/types/api';
 import { Button } from '@/components/button';
 import { Badge } from '@/components/badge';
 import { Input } from '@/components/input';
@@ -29,8 +29,15 @@ function formatDateLong(iso: string) {
   });
 }
 
+function formatLocalDate(d: Date) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 function toDateKey(iso: string) {
-  return iso.slice(0, 10);
+  return formatLocalDate(new Date(iso));
 }
 
 function get14Days(): Date[] {
@@ -70,7 +77,7 @@ export default function CalendarPage() {
   }, {});
 
   const days = get14Days();
-  const todayKey = toDateKey(new Date().toISOString());
+  const todayKey = formatLocalDate(new Date());
   const slotsForSelectedDate = selectedDate ? (slotsByDate[selectedDate] ?? []) : [];
 
   function handleSubmit() {
@@ -134,7 +141,7 @@ export default function CalendarPage() {
           </p>
           <div className="grid grid-cols-7 gap-1.5">
             {days.map((day) => {
-              const key = toDateKey(day.toISOString());
+              const key = formatLocalDate(day);
               const hasSlots = Boolean(slotsByDate[key]?.length);
               const isSelected = selectedDate === key;
               const isToday = key === todayKey;

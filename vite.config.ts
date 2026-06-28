@@ -7,7 +7,10 @@ export default defineConfig({
   root: 'src/frontend',
   plugins: [react(), tailwindcss()],
   resolve: {
-    alias: { '@': path.resolve(__dirname, 'src/frontend') },
+    alias: {
+      '@': path.resolve(__dirname, 'src/frontend'),
+      '@shared': path.resolve(__dirname, 'src/shared'),
+    },
   },
   build: {
     outDir: '../../dist',

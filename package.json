@@ -14,7 +14,7 @@
   "author": "",
   "type": "module",
   "scripts": {
-    "dev": "tsp compile . && concurrently \"vite\" \"prism mock tsp-output/schema/openapi.yaml\"",
+    "dev": "tsp compile . && concurrently \"vite\" \"npx tsx watch src/backend/src/index.ts\"",
     "build": "vite build",
     "preview": "vite preview"
   },

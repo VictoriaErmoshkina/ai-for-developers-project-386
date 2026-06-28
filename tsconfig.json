@@ -8,8 +8,9 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/frontend/*"]
+      "@/*": ["src/frontend/*"],
+      "@shared/*": ["src/shared/*"]
     }
   },
-  "include": ["src/frontend", "vite.config.ts"]
+  "include": ["src/frontend", "src/shared", "vite.config.ts"]
 }

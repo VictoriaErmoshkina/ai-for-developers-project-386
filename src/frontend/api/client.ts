@@ -1,6 +1,6 @@
-import type { EventType, Slot, Booking } from '@/types/api';
+import type { EventType, Slot, Booking } from '@shared/types/api';
 
-const BASE = 'http://localhost:4010';
+const BASE = 'http://localhost:3001';
 
 async function request<T>(path: string, method = 'GET', body?: unknown): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {

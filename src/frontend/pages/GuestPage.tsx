@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Clock } from 'lucide-react';
 import { guestApi } from '@/api/client';
-import type { EventType } from '@/types/api';
+import type { EventType } from '@shared/types/api';
 import { Card, CardContent } from '@/components/card';
 import { Badge } from '@/components/badge';
 import { cn } from '@/lib/utils';
